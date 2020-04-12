@@ -14,7 +14,7 @@ train_set = torchvision.datasets.ImageFolder(
     transforms.ToTensor()])
 )
 
-train_loader = DataLoader(train_set, batch_size = 64)
+train_loader = DataLoader(train_set, batch_size = 64, shuffle = True)
 
 
 if __name__ == "__main__":
