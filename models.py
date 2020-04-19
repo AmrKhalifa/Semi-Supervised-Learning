@@ -33,68 +33,114 @@ class FCNet(nn.Module):
 		out = self.feedforward(x)
 		return out 
 
-def train_model(model, train_data, epochs = 10):
-    loss_trace = []
-    criterion = nn.CrossEntropyLoss()
-    learning_rate = .01 
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    n_epochs = epochs
-    model.train()
-    
-    model.to(device)
-    
-    print("started training ...")
+class CNNet(nn.Module):
 
-    for epoch in range(n_epochs):
-    	if epoch / 10 ==0:
-    		learning_rate /= 2
-    		optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+	def __init__(self):
+		super(CNNet, self).__init__()
 
-    	epoch_loss = 0.0 
-    	for batch in train_data:
-    		batch_images, batch_labels = batch
+		self.conv_1 = nn.Conv2d(in_channels = 1, out_channels = 16, kernel_size = 3)
+		self.conv_2 = nn.Conv2d(in_channels = 16, out_channels = 8, kernel_size = 2)
+		self.conv_3 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 3)
+		self.fc_1 = nn.Linear(in_features = 11*11*8, out_features = 50)
+		self.fc_2 = nn.Linear(in_features = 50, out_features = 5) 
 
-    		batch_images = batch_images.to(device)
-    		batch_labels = batch_labels.to(device)
-
-    		batch_output = model(batch_images.reshape(-1, 100*100))
-            
-    		loss = criterion(batch_output, batch_labels)
-    		
-    		optimizer.zero_grad()
-    		loss.backward()
-    		epoch_loss += loss.item()
-    		optimizer.step()
-        
-    	print("the loss after processing this epoch is: ", epoch_loss)
-    	loss_trace.append(epoch_loss)
-    print("Training completed.")
-    print("=*="*20)
-    return model, loss_trace
+		self.pool = nn.MaxPool2d(kernel_size = 2)
 
 
-def test_model(model, test_loader):
-    model.eval()
-    model.to(device)
-    correct = 0
+	def forward(self, x):
+		x = self.conv_1(x)
+		x = nn.ReLU()(self.pool(x))
+		x = nn.BatchNorm2d(16)(x)
+		x = nn.Dropout(0.2)(x)
 
-    for batch in test_loader:
-        batch_images, batch_labels = batch
-        
-        batch_images = batch_images.to(device)
-        batch_labels = batch_labels.to(device)
+		x = self.conv_2(x)
+		x = nn.ReLU()(self.pool(x))
+		x = nn.BatchNorm2d(8)(x)
+		x = nn.Dropout(0.1)(x)
 
-        predictions = model(batch_images.reshape(-1, 100*100))
+		x = self.conv_3(x)
+		x = nn.ReLU()(self.pool(x))
+		x = nn.BatchNorm2d(8)(x)
+		x = nn.Dropout(0.1)(x)
+		
+		x = self.fc_1(x.view(x.size(0), -1))
+		x = nn.ReLU()(x)
+		x = nn.Dropout(0.2)(x)
 
-        predictions = predictions.data.max(1, keepdim=True)[1]
-        correct += predictions.eq(batch_labels.data.view_as(predictions)).sum()
+		output = self.fc_2(x)
 
-    accuracy = float(correct.item() / (len(test_loader.dataset)))
+		return output
 
-    print("The classifier accuracy is: ", 100 * accuracy)
-    
-    return accuracy
+
+def train_model(model, train_data, epochs = 10, cnn = True):
+	loss_trace = []
+	criterion = nn.CrossEntropyLoss()
+	learning_rate = .01 
+	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+	n_epochs = epochs
+	model.train()
+	
+	model.to(device)
+	
+	print("started training ...")
+
+	for epoch in range(n_epochs):
+		if epoch / 10 ==0:
+			learning_rate /= 2
+			optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+		epoch_loss = 0.0 
+		for batch in train_data:
+			batch_images, batch_labels = batch
+
+			batch_images = batch_images.to(device)
+			batch_labels = batch_labels.to(device)
+
+			if cnn == True: 
+				batch_output = model(batch_images)
+			else: 
+			  batch_output = model(batch_images.reshape(-1, 100*100))
+			
+			loss = criterion(batch_output, batch_labels)
+			
+			optimizer.zero_grad()
+			loss.backward()
+			epoch_loss += loss.item()
+			optimizer.step()
+		
+		print("the loss after processing this epoch is: ", epoch_loss)
+		loss_trace.append(epoch_loss)
+	print("Training completed.")
+	print("=*="*20)
+	return model, loss_trace
+
+
+def test_model(model, test_loader, cnn = True):
+	model.eval()
+	model.to(device)
+	correct = 0
+
+	for batch in test_loader:
+		batch_images, batch_labels = batch
+		
+		batch_images = batch_images.to(device)
+		batch_labels = batch_labels.to(device)
+			
+		if cnn == True: 
+			predictions = model(batch_images)
+		else: 
+		  predictions = model(batch_images.reshape(-1, 100*100))
+
+		predictions = predictions.data.max(1, keepdim=True)[1]
+		correct += predictions.eq(batch_labels.data.view_as(predictions)).sum()
+
+	accuracy = float(correct.item() / (len(test_loader.dataset)))
+
+	print("The classifier accuracy is: ", 100 * accuracy)
+	
+	return accuracy
 
 if __name__== '__main__':
 

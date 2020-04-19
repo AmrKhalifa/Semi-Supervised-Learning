@@ -4,16 +4,16 @@ import torchvision
 import torch
 import matplotlib.pyplot as plt 
 
-train_data_path = '../semi_supervised_data/train_data'
-test_data_path = '../semi_supervised_data/test_data'
-unlabeld_data_path = '../semi_supervised_data/unlabeled'
+train_data_path = './semi_supervised_data/train_data'
+test_data_path = './semi_supervised_data/test_data'
+unlabeld_data_path = './semi_supervised_data/unlabeled'
 def get_set(path): 
 
 	dataset = torchvision.datasets.ImageFolder(
 	    root=path,
 	    transform = transforms.Compose([
-	    transforms.Resize(size = (256, 256)),
-	    #transforms.Grayscale(),
+	    transforms.Resize(size = (100, 100)),
+	    transforms.Grayscale(),
 	    transforms.ToTensor()])
 	)
 
