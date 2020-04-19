@@ -49,6 +49,13 @@ class CNNet(nn.Module):
 
 
 	def forward(self, x):
+
+		x = get_features(x)
+		output = self.fc_2(x)
+
+		return output
+
+	def get_features(self, x):
 		x = self.conv_1(x)
 		x = nn.ReLU()(self.pool(x))
 		x = nn.BatchNorm2d(16)(x)
@@ -68,9 +75,8 @@ class CNNet(nn.Module):
 		x = nn.ReLU()(x)
 		x = nn.Dropout(0.2)(x)
 
-		output = self.fc_2(x)
+		return x 
 
-		return output
 
 
 def train_model(model, train_data, epochs = 10, cnn = True):
