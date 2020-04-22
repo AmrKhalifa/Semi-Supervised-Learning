@@ -50,7 +50,7 @@ class CNNet(nn.Module):
 
 	def forward(self, x):
 
-		x = get_features(x)
+		x = self.get_features(x)
 		output = self.fc_2(x)
 
 		return output
