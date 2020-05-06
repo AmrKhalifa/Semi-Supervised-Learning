@@ -23,9 +23,9 @@ train_set = get_set(train_data_path)
 test_set = get_set(test_data_path)
 unlabeld_set = get_set(unlabeld_data_path)
 
-train_loader = DataLoader(train_set, batch_size = 64, shuffle = True)
-test_loader = DataLoader(test_set, batch_size = 64, shuffle = True)
-unlabeled_loader = DataLoader(unlabeld_set, batch_size = 64, shuffle = True)
+train_loader = DataLoader(train_set, batch_size = 512, shuffle = True)
+test_loader = DataLoader(test_set, batch_size = 512, shuffle = True)
+unlabeled_loader = DataLoader(unlabeld_set, batch_size = 512, shuffle = True)
 
 if __name__ == "__main__":
 

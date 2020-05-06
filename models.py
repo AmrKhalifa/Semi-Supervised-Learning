@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn 
-
+from torch.optim.lr_scheduler import LambdaLR
 
 use_cuda = True
 device = torch.device("cuda" if (use_cuda and torch.cuda.is_available()) else "cpu") 
@@ -58,22 +58,29 @@ class CNNet(nn.Module):
 	def get_features(self, x):
 		x = self.conv_1(x)
 		x = nn.ReLU()(self.pool(x))
-		x = nn.BatchNorm2d(16)(x)
-		x = nn.Dropout(0.2)(x)
+		b1 = nn.BatchNorm2d(16).to(device)
+		x = b1(x)
+		d1 = nn.Dropout(0.2).to(device)
+		x  = d1(x)
 
 		x = self.conv_2(x)
 		x = nn.ReLU()(self.pool(x))
-		x = nn.BatchNorm2d(8)(x)
-		x = nn.Dropout(0.1)(x)
+		b2 = nn.BatchNorm2d(8).to(device)
+		x = b2(x)
+		d2 = nn.Dropout(0.1).to(device)
+		x = d2(x)
 
 		x = self.conv_3(x)
 		x = nn.ReLU()(self.pool(x))
-		x = nn.BatchNorm2d(8)(x)
-		x = nn.Dropout(0.1)(x)
+		b3 = nn.BatchNorm2d(8).to(device)
+		x = b3(x)
+		d3 = nn.Dropout(0.1).to(device)
+		x = d3(x)
 		
 		x = self.fc_1(x.view(x.size(0), -1))
 		x = nn.ReLU()(x)
-		x = nn.Dropout(0.2)(x)
+		d4 = nn.Dropout(0.2).to(device)
+		x = d4(x)
 
 		return x 
 
@@ -84,7 +91,6 @@ def train_model(model, train_data, epochs = 10, cnn = True):
 	criterion = nn.CrossEntropyLoss()
 	learning_rate = .01 
 	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
 	n_epochs = epochs
 	model.train()
 	
@@ -93,11 +99,10 @@ def train_model(model, train_data, epochs = 10, cnn = True):
 	print("started training ...")
 
 	for epoch in range(n_epochs):
-		if epoch / 10 ==0:
-			learning_rate /= 2
+		epoch_loss = 0.0
+		if epoch % 10 ==0:
+			learning_rate *= 0.9
 			optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-		epoch_loss = 0.0 
 		for batch in train_data:
 			batch_images, batch_labels = batch
 
@@ -137,7 +142,7 @@ def test_model(model, test_loader, cnn = True):
 		if cnn == True: 
 			predictions = model(batch_images)
 		else: 
-		  predictions = model(batch_images.reshape(-1, 100*100))
+			predictions = model(batch_images.reshape(-1, 100*100))
 
 		predictions = predictions.data.max(1, keepdim=True)[1]
 		correct += predictions.eq(batch_labels.data.view_as(predictions)).sum()
