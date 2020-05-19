@@ -36,14 +36,19 @@ class FCNet(nn.Module):
 
 class CNNet(nn.Module):
 
-	def __init__(self):
+	def __init__(self, out = 5):
 		super(CNNet, self).__init__()
 
 		self.conv_1 = nn.Conv2d(in_channels = 1, out_channels = 16, kernel_size = 3)
+		nn.init.xavier_normal_(self.conv_1.weight, gain = 2**0.5)
 		self.conv_2 = nn.Conv2d(in_channels = 16, out_channels = 8, kernel_size = 2)
+		nn.init.xavier_normal_(self.conv_2.weight, 2**0.5)
 		self.conv_3 = nn.Conv2d(in_channels = 8, out_channels = 8, kernel_size = 3)
+		nn.init.xavier_normal_(self.conv_3.weight, 2**0.5)
 		self.fc_1 = nn.Linear(in_features = 11*11*8, out_features = 50)
-		self.fc_2 = nn.Linear(in_features = 50, out_features = 5) 
+		nn.init.xavier_normal_(self.fc_1.weight, 2**0.5)
+		self.fc_2 = nn.Linear(in_features = 50, out_features = out)
+		nn.init.xavier_normal_(self.fc_2.weight, 2**0.5) 
 
 		self.pool = nn.MaxPool2d(kernel_size = 2)
 
